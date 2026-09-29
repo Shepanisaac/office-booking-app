@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Office Booking App — Wireframes</title>
+<style>
+  :root {
+    --bg: #f4f4f4;
+    --paper: #ffffff;
+    --line: #333333;
+    --line-soft: #999999;
+    --fill: #e0e0e0;
+    --fill-soft: #ececec;
+    --text: #1a1a1a;
+    --text-soft: #666666;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    color: var(--text);
+    padding: calc(32px + env(safe-area-inset-top, 0px)) 20px calc(60px + env(safe-area-inset-bottom, 0px));
+  }
+  h1.page-title {
+    text-align: center;
+    font-size: 20px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    margin: 0 0 6px;
+  }
+  p.page-sub {
+    text-align: center;
+    color: var(--text-soft);
+    font-size: 13px;
+    margin: 0 0 36px;
+  }
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+  }
+  .tab {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    padding: 6px 14px;
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: var(--text);
+  }
+  .tab.active { background: var(--line); color: #fff; }
+
+  .screen-wrap { max-width: 420px; margin: 0 auto 56px; display: none; }
+  .screen-wrap.active { display: block; }
+
+  .screen-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-soft);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .device {
+    border: 2px solid var(--line);
+    background: var(--paper);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .wf-bar {
+    border-bottom: 1px dashed var(--line-soft);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .wf-logo-box {
+    width: 26px; height: 26px;
+    border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--text-soft);
+  }
+  .wf-title { font-size: 13px; font-weight: bold; letter-spacing: 0.02em; }
+  .wf-icon {
+    width: 20px; height: 20px;
+    border: 1px solid var(--line-soft);
+    border-radius: 50%;
+  }
+
+  .wf-body { padding: 20px 16px; }
+
+  .wf-field {
+    border: 1px solid var(--line);
+    background: var(--fill-soft);
+    height: 38px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    font-size: 11px;
+    color: var(--text-soft);
+    margin-bottom: 14px;
+  }
+  .wf-field-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-soft);
+    margin-bottom: 4px;
+  }
+
+  .wf-btn {
+    border: 1px solid var(--line);
+    background: var(--line);
+    color: #fff;
+    text-align: center;
+    padding: 11px 0;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+  .wf-btn-outline {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--text);
+    text-align: center;
+    padding: 10px 0;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .wf-link {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-soft);
+    margin-top: 14px;
+    text-decoration: underline dotted;
+  }
+  .wf-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0;
+    color: var(--text-soft);
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+  .wf-divider::before, .wf-divider::after {
+    content: "";
+    flex: 1;
+    border-top: 1px dashed var(--line-soft);
+  }
+
+  .wf-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .wf-chip {
+    border: 1px solid var(--line-soft);
+    font-size: 10px;
+    padding: 5px 10px;
+    color: var(--text-soft);
+  }
+  .wf-chip.active { border-color: var(--line); color: var(--text); font-weight: bold; }
+
+  .wf-desk-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .wf-desk {
+    border: 1px solid var(--line-soft);
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: var(--text-soft);
+    gap: 4px;
+  }
+  .wf-desk.available { border: 1px solid var(--line); color: var(--text); }
+  .wf-desk.taken { background: var(--fill); text-decoration: line-through; }
+  .wf-desk-icon {
+    width: 14px; height: 14px;
+    border: 1px solid currentColor;
+  }
+
+  .wf-section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-soft);
+    margin: 18px 0 10px;
+    border-bottom: 1px dashed var(--line-soft);
+    padding-bottom: 6px;
+  }
+
+  .wf-list-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--line-soft);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    font-size: 11px;
+  }
+  .wf-badge {
+    font-size: 9px;
+    border: 1px solid var(--line);
+    padding: 2px 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .wf-check-circle {
+    width: 54px; height: 54px;
+    border: 2px solid var(--line);
+    border-radius: 50%;
+    margin: 6px auto 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+  .wf-confirm-title {
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+  .wf-confirm-sub {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-soft);
+    margin-bottom: 22px;
+  }
+  .wf-detail-card {
+    border: 1px solid var(--line-soft);
+    padding: 14px;
+    margin-bottom: 20px;
+  }
+  .wf-detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    padding: 6px 0;
+    border-bottom: 1px dashed #dddddd;
+  }
+  .wf-detail-row:last-child { border-bottom: none; }
+  .wf-detail-key { color: var(--text-soft); }
+  .wf-detail-val { font-weight: bold; }
+
+  .wf-notice {
+    border: 1px dashed var(--line-soft);
+    background: var(--fill-soft);
+    font-size: 10px;
+    color: var(--text-soft);
+    padding: 10px 12px;
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+
+  .annot {
+    font-size: 10px;
+    color: var(--text-soft);
+    margin-top: 10px;
+    text-align: center;
+    font-style: italic;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c1c1c;
+      --paper: #262626;
+      --line: #e6e6e6;
+      --line-soft: #888888;
+      --fill: #3a3a3a;
+      --fill-soft: #313131;
+      --text: #f0f0f0;
+      --text-soft: #a3a3a3;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1c1c1c;
+    --paper: #262626;
+    --line: #e6e6e6;
+    --line-soft: #888888;
+    --fill: #3a3a3a;
+    --fill-soft: #313131;
+    --text: #f0f0f0;
+    --text-soft: #a3a3a3;
+  }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">Office Booking App</h1>
+<p class="page-sub">Low-fidelity wireframes — Phase 3 · Product Design</p>
+
+<div class="tabs">
+  <div class="tab active" data-target="login">1. Login</div>
+  <div class="tab" data-target="dashboard">2. Availability Dashboard</div>
+  <div class="tab" data-target="confirm">3. Booking Confirmation</div>
+</div>
+
+<div class="screen-wrap active" id="login">
+  <div class="screen-label">Screen 1 — Login</div>
+  <div class="device">
+    <div class="wf-bar">
+      <div class="wf-logo-box">LG</div>
+      <div class="wf-title">DeskBook</div>
+      <div style="width:26px;"></div>
+    </div>
+    <div class="wf-body">
+      <div style="text-align:center; margin-bottom:22px;">
+        <div style="font-size:14px; font-weight:bold;">Sign in to your account</div>
+        <div style="font-size:11px; color:var(--text-soft); margin-top:4px;">Book a desk in seconds</div>
+      </div>
+
+      <div class="wf-field-label">Email</div>
+      <div class="wf-field">you@company.com</div>
+
+      <div class="wf-field-label">Password</div>
+      <div class="wf-field">••••••••</div>
+
+      <div class="wf-btn">Log In</div>
+
+      <div class="wf-divider">or</div>
+
+      <div class="wf-btn-outline">Continue with SSO (Post-MVP)</div>
+
+      <div class="wf-link">Forgot password? / Create account</div>
+    </div>
+  </div>
+  <div class="annot">Auth: email/password for MVP — SSO shown as disabled/deferred per schema doc</div>
+</div>
+
+<div class="screen-wrap" id="dashboard">
+  <div class="screen-label">Screen 2 — Availability Dashboard</div>
+  <div class="device">
+    <div class="wf-bar">
+      <div class="wf-logo-box">LG</div>
+      <div class="wf-title">Available Desks</div>
+      <div class="wf-icon"></div>
+    </div>
+    <div class="wf-body">
+      <div class="wf-field-label">Date</div>
+      <div class="wf-field">Tomorrow — Fri, Sep 25</div>
+
+      <div class="wf-filters">
+        <div class="wf-chip active">AM</div>
+        <div class="wf-chip">PM</div>
+        <div class="wf-chip">Full Day</div>
+        <div class="wf-chip">Floor 3</div>
+        <div class="wf-chip">Quiet Zone</div>
+      </div>
+
+      <div class="wf-section-title">Floor 3 — 6 desks</div>
+      <div class="wf-desk-grid">
+        <div class="wf-desk available"><div class="wf-desk-icon"></div>A11</div>
+        <div class="wf-desk available"><div class="wf-desk-icon"></div>A12</div>
+        <div class="wf-desk taken"><div class="wf-desk-icon"></div>A13</div>
+        <div class="wf-desk available"><div class="wf-desk-icon"></div>A14</div>
+        <div class="wf-desk taken"><div class="wf-desk-icon"></div>A15</div>
+        <div class="wf-desk available"><div class="wf-desk-icon"></div>A16</div>
+      </div>
+
+      <div class="wf-section-title">My Upcoming Bookings</div>
+      <div class="wf-list-row">
+        <span>Desk A12 · Fri, Sep 25 · AM</span>
+        <span class="wf-badge">Confirmed</span>
+      </div>
+      <div class="wf-list-row">
+        <span>Desk B04 · Wed, Sep 23 · PM</span>
+        <span class="wf-badge">Released</span>
+      </div>
+
+      <div class="wf-btn">Book Selected Desk</div>
+    </div>
+  </div>
+  <div class="annot">Grid state reflects the (desk_id, date, timeslot) availability check; "Released" badge reflects the no-show auto-release job</div>
+</div>
+
+<div class="screen-wrap" id="confirm">
+  <div class="screen-label">Screen 3 — Booking Confirmation</div>
+  <div class="device">
+    <div class="wf-bar">
+      <div class="wf-logo-box">LG</div>
+      <div class="wf-title">Confirmation</div>
+      <div style="width:26px;"></div>
+    </div>
+    <div class="wf-body">
+      <div class="wf-check-circle">✓</div>
+      <div class="wf-confirm-title">Desk Reserved</div>
+      <div class="wf-confirm-sub">A confirmation has been sent to your email</div>
+
+      <div class="wf-detail-card">
+        <div class="wf-detail-row"><span class="wf-detail-key">Desk</span><span class="wf-detail-val">A12 · Floor 3</span></div>
+        <div class="wf-detail-row"><span class="wf-detail-key">Date</span><span class="wf-detail-val">Fri, Sep 25, 2026</span></div>
+        <div class="wf-detail-row"><span class="wf-detail-key">Timeslot</span><span class="wf-detail-val">AM</span></div>
+        <div class="wf-detail-row"><span class="wf-detail-key">Status</span><span class="wf-detail-val">Confirmed</span></div>
+      </div>
+
+      <div class="wf-notice">
+        Reminder: check in within 15 minutes of your slot starting, or this desk will be automatically released for others to book.
+      </div>
+
+      <div class="wf-btn">View My Bookings</div>
+      <div class="wf-btn-outline" style="margin-top:10px;">Cancel This Booking</div>
+    </div>
+  </div>
+  <div class="annot">Notice text directly reflects the checked_in_at / auto-release logic from the schema and API design</div>
+</div>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const screens = document.querySelectorAll('.screen-wrap');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      screens.forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.target).classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

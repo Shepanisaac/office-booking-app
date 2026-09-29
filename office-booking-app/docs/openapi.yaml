@@ -1,0 +1,325 @@
+openapi: 3.0.3
+info:
+  title: Office Desk & Room Booking API
+  description: >
+    API for the Office Desk & Room Booking MVP. Covers authentication,
+    desk availability, and the booking lifecycle (create, check-in,
+    cancel, auto-release for no-shows).
+  version: 1.0.0
+
+servers:
+  - url: https://api.deskbooking.example.com/v1
+    description: Production
+  - url: http://localhost:3000/v1
+    description: Local development
+
+tags:
+  - name: Auth
+  - name: Desks
+  - name: Bookings
+  - name: Admin
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Create a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name: { type: string, example: "Isaac Daber" }
+                email: { type: string, format: email }
+                password: { type: string, format: password, minLength: 8 }
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Authenticate and receive a session token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+                  user: { $ref: '#/components/schemas/User' }
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /desks:
+    get:
+      tags: [Desks]
+      summary: List all active desks
+      parameters:
+        - name: floor
+          in: query
+          schema: { type: integer }
+        - name: zone
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: List of desks
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Desk' }
+
+  /desks/availability:
+    get:
+      tags: [Desks]
+      summary: View desk availability for a given date and timeslot
+      description: >
+        Supports the "view available desks for tomorrow" user story.
+        Returns each active desk with its current booking status for
+        the requested date/timeslot.
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema: { type: string, format: date }
+          example: "2026-09-24"
+        - name: timeslot
+          in: query
+          required: true
+          schema: { $ref: '#/components/schemas/Timeslot' }
+      responses:
+        '200':
+          description: Availability list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    desk: { $ref: '#/components/schemas/Desk' }
+                    available: { type: boolean }
+
+  /bookings:
+    post:
+      tags: [Bookings]
+      summary: Reserve a desk
+      security: [{ bearerAuth: [] }]
+      description: >
+        Creates a booking. The database enforces a unique constraint on
+        (desk_id, booking_date, timeslot) for active statuses, so a
+        409 is returned if the desk was just taken by a concurrent
+        request — this is the systematic double-booking block from
+        the schema design.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [desk_id, booking_date, timeslot]
+              properties:
+                desk_id: { type: string, format: uuid }
+                booking_date: { type: string, format: date }
+                timeslot: { $ref: '#/components/schemas/Timeslot' }
+      responses:
+        '201':
+          description: Booking confirmed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Booking' }
+        '409':
+          description: Desk no longer available for that date/timeslot
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+    get:
+      tags: [Bookings]
+      summary: List the authenticated user's bookings
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/BookingStatus' }
+      responses:
+        '200':
+          description: List of bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Booking' }
+
+  /bookings/{bookingId}:
+    delete:
+      tags: [Bookings]
+      summary: Cancel a booking
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Booking cancelled
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Booking' }
+        '404':
+          description: Booking not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /bookings/{bookingId}/check-in:
+    post:
+      tags: [Bookings]
+      summary: Check in to a reserved desk
+      security: [{ bearerAuth: [] }]
+      description: >
+        Sets checked_in_at on the booking. Must be called within the
+        15-minute grace window or the scheduled auto-release job will
+        have already flipped the booking's status to "released" (the
+        no-show / ghost-booking user story).
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Checked in
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Booking' }
+        '410':
+          description: Booking already auto-released due to no-show
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /admin/desks:
+    post:
+      tags: [Admin]
+      summary: Add a new desk
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [label, floor]
+              properties:
+                label: { type: string, example: "3F-A12" }
+                floor: { type: integer }
+                zone: { type: string }
+      responses:
+        '201':
+          description: Desk created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Desk' }
+
+  /admin/bookings:
+    get:
+      tags: [Admin]
+      summary: List all bookings across all users (admin only)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: date
+          in: query
+          schema: { type: string, format: date }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/BookingStatus' }
+      responses:
+        '200':
+          description: List of all bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Booking' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Timeslot:
+      type: string
+      enum: [AM, PM, FULL_DAY]
+
+    BookingStatus:
+      type: string
+      enum: [confirmed, checked_in, released, cancelled]
+
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string, format: email }
+        role: { type: string, enum: [employee, admin] }
+        created_at: { type: string, format: date-time }
+
+    Desk:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        label: { type: string }
+        floor: { type: integer }
+        zone: { type: string }
+        is_active: { type: boolean }
+
+    Booking:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        desk_id: { type: string, format: uuid }
+        booking_date: { type: string, format: date }
+        timeslot: { $ref: '#/components/schemas/Timeslot' }
+        status: { $ref: '#/components/schemas/BookingStatus' }
+        checked_in_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+        message: { type: string }
